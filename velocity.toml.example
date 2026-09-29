@@ -1,0 +1,14 @@
+# Cambios en /opt/velocity/velocity.toml
+bind = "0.0.0.0:25565"
+player-info-forwarding-mode = "modern"
+online-mode = true
+
+[servers]
+# El nombre (izquierda) debe ser igual a NODE_NAME de cada nodo
+mp-node-1 = "10.142.0.11:25565"
+mp-node-2 = "10.142.0.12:25565"
+# ... hasta mp-node-10
+try = ["mp-node-1", "mp-node-2"]
+
+# Opción: MultiPaper-Master también puede correr como plugin de Velocity
+# (plugins/multipaper-velocity/config.toml) y así manda al jugador al nodo menos cargado.

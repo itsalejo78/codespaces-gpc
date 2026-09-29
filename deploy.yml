@@ -1,0 +1,24 @@
+name: Deploy plugins a los nodos
+on:
+  push:
+    branches: [main]
+    paths: ["plugins/**"]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2          # no reinicies todos a la vez
+      matrix:
+        node: [mp-node-1, mp-node-2, mp-node-3, mp-node-4, mp-node-5,
+               mp-node-6, mp-node-7, mp-node-8, mp-node-9, mp-node-10]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Actualizar nodo
+        run: |
+          gcloud compute ssh ${{ matrix.node }} --zone us-east1-b --tunnel-through-iap \
+            --command "REPO_URL=https://github.com/${{ github.repository }}.git bash -s" \
+            < scripts/03-update-node.sh

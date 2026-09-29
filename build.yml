@@ -1,0 +1,40 @@
+name: Compilar MultiPaper 26.2
+on:
+  workflow_dispatch:
+env:
+  MC_VERSION: "26.2"
+  # Idealmente haz un fork del repo a tu cuenta y revísalo antes de ejecutar sus jars.
+  MP_REPO: elizonapp/Multi-MultiPaper
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+      - name: Clonar MultiPaper
+        run: |
+          git clone https://github.com/${MP_REPO}.git mp
+          git config --global user.name  "ci"
+          git config --global user.email "ci@example.com"
+      - name: Compilar
+        working-directory: mp
+        run: |
+          ./setup.sh "$MC_VERSION"
+          ./gradlew applyPatches
+          ./gradlew shadowjar createReobfPaperclipJar
+          # si createReobfPaperclipJar no existe en 26.x, mira ./gradlew tasks
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir out
+          cp mp/build/libs/*.jar out/ || true
+          cp mp/MultiPaper-Master/build/libs/*.jar out/ || true
+          ls -la out
+          gh release create "mp-${MC_VERSION}-${{ github.run_number }}" out/*.jar \
+            --title "MultiPaper ${MC_VERSION}" --notes "Build automático"
